@@ -123,8 +123,6 @@ UdpServer::GetDelayStats() const
     }
     delayStats[8] = totalDiff / (delays.size() - 1) / 1000000;
 
-    std::cout << "Delay stats: " << delayStats[0] << " " << delayStats[1] << " " << delayStats[2] << " " << delayStats[3] << " " << delayStats[4] << " " << delayStats[5] << " " << delayStats[6] << " " << delayStats[7] << " " << delayStats[8] << std::endl;
-
     return delayStats;
 }
 
