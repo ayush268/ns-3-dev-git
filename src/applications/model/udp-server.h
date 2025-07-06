@@ -67,6 +67,21 @@ class UdpServer : public SinkApplication
     uint16_t GetPacketWindowSize() const;
 
     /**
+     * @brief Returns the delay statistics of all received packets
+     * @return A vector containing the following:
+     * 1. Average delay in nanoseconds, or -1 if no packets were received
+     * 2. 100 percentile delay in nanoseconds, or -1 if no packets were received
+     * 3. 99 percentile delay in nanoseconds, or -1 if no packets were received
+     * 4. 95 percentile delay in nanoseconds, or -1 if no packets were received
+     * 5. 90 percentile delay in nanoseconds, or -1 if no packets were received
+     * 6. 75 percentile delay in nanoseconds, or -1 if no packets were received
+     * 7. 50 percentile delay in nanoseconds, or -1 if no packets were received
+     * 8. Minimum delay in nanoseconds, or -1 if no packets were received
+     * 9. Jitter in nanoseconds, or -1 if no packets were received
+     */
+    std::vector<double> GetDelayStats() const;
+
+    /**
      * @brief Set the size of the window used for checking loss. This value should
      *  be a multiple of 8
      * @param size the size of the window used for checking loss. This value should
@@ -91,6 +106,9 @@ class UdpServer : public SinkApplication
 
     /// Callbacks for tracing the packet Rx events, includes source and destination addresses
     TracedCallback<Ptr<const Packet>, const Address&, const Address&> m_rxTraceWithAddresses;
+
+    // Declaring custom vector for keeping track of delay of each packet
+    std::vector<double> m_delay;
 };
 
 } // namespace ns3

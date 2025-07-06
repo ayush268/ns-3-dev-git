@@ -23,6 +23,10 @@
 #include "ns3/socket.h"
 #include "ns3/uinteger.h"
 
+#include <numeric>
+#include <cassert>
+#include <algorithm>
+
 namespace ns3
 {
 
@@ -87,6 +91,41 @@ uint64_t
 UdpServer::GetReceived() const
 {
     return m_received;
+}
+
+std::vector<double>
+UdpServer::GetDelayStats() const
+{
+    NS_LOG_FUNCTION(this);
+    std::vector<double> delayStats(9, -1.0); // Initialize with -1
+    if (m_delay.empty())
+    {
+        return delayStats;
+    }
+
+    assert(m_delay.size() == GetReceived());
+    
+    std::vector<double> delays = m_delay;
+    std::sort(delays.begin(), delays.end());
+    delayStats[0] = std::accumulate(delays.begin(), delays.end(), 0.0) / delays.size() / 1000000;
+    delayStats[1] = delays[delays.size() - 1] / 1000000;
+    delayStats[2] = delays[static_cast<size_t>(delays.size() * 0.99)] / 1000000;
+    delayStats[3] = delays[static_cast<size_t>(delays.size() * 0.95)] / 1000000;
+    delayStats[4] = delays[static_cast<size_t>(delays.size() * 0.90)] / 1000000;
+    delayStats[5] = delays[static_cast<size_t>(delays.size() * 0.75)] / 1000000;
+    delayStats[6] = delays[static_cast<size_t>(delays.size() * 0.50)] / 1000000;
+    delayStats[7] = delays[0] / 1000000;
+
+    double totalDiff = 0.0;
+    for (size_t i = 0; i < delays.size() - 1; i++)
+    {
+        totalDiff += std::abs(delays[i + 1] - delays[i]);
+    }
+    delayStats[8] = totalDiff / (delays.size() - 1) / 1000000;
+
+    std::cout << "Delay stats: " << delayStats[0] << " " << delayStats[1] << " " << delayStats[2] << " " << delayStats[3] << " " << delayStats[4] << " " << delayStats[5] << " " << delayStats[6] << " " << delayStats[7] << " " << delayStats[8] << std::endl;
+
+    return delayStats;
 }
 
 void
@@ -155,6 +194,7 @@ UdpServer::HandleRead(Ptr<Socket> socket)
                                               << " Uid: " << packet->GetUid() << " TXtime: "
                                               << seqTs.GetTs() << " RXtime: " << Simulator::Now()
                                               << " Delay: " << Simulator::Now() - seqTs.GetTs());
+                m_delay.push_back((Simulator::Now() - seqTs.GetTs()).GetNanoSeconds());
             }
             else if (Inet6SocketAddress::IsMatchingType(from))
             {
@@ -164,6 +204,7 @@ UdpServer::HandleRead(Ptr<Socket> socket)
                                               << " Uid: " << packet->GetUid() << " TXtime: "
                                               << seqTs.GetTs() << " RXtime: " << Simulator::Now()
                                               << " Delay: " << Simulator::Now() - seqTs.GetTs());
+                m_delay.push_back((Simulator::Now() - seqTs.GetTs()).GetNanoSeconds());
             }
 
             m_lossCounter.NotifyReceived(currentSequenceNumber);
