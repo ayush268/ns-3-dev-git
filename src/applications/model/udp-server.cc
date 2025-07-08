@@ -97,7 +97,7 @@ std::vector<double>
 UdpServer::GetDelayStats() const
 {
     NS_LOG_FUNCTION(this);
-    std::vector<double> delayStats(9, -1.0); // Initialize with -1
+    std::vector<double> delayStats(13, -1.0); // Initialize with -1
     if (m_delay.empty())
     {
         return delayStats;
@@ -114,14 +114,18 @@ UdpServer::GetDelayStats() const
     delayStats[4] = delays[static_cast<size_t>(delays.size() * 0.90)] / 1000000;
     delayStats[5] = delays[static_cast<size_t>(delays.size() * 0.75)] / 1000000;
     delayStats[6] = delays[static_cast<size_t>(delays.size() * 0.50)] / 1000000;
-    delayStats[7] = delays[0] / 1000000;
+    delayStats[7] = delays[static_cast<size_t>(delays.size() * 0.25)] / 1000000;
+    delayStats[8] = delays[static_cast<size_t>(delays.size() * 0.10)] / 1000000;
+    delayStats[9] = delays[static_cast<size_t>(delays.size() * 0.05)] / 1000000;
+    delayStats[10] = delays[static_cast<size_t>(delays.size() * 0.01)] / 1000000;
+    delayStats[11] = delays[0] / 1000000;
 
     double totalDiff = 0.0;
     for (size_t i = 0; i < delays.size() - 1; i++)
     {
         totalDiff += std::abs(delays[i + 1] - delays[i]);
     }
-    delayStats[8] = totalDiff / (delays.size() - 1) / 1000000;
+    delayStats[12] = totalDiff / (delays.size() - 1) / 1000000;
 
     return delayStats;
 }
